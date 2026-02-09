@@ -5,8 +5,8 @@ import java.util.Random;
 public class Board {
 
     private Random random = new Random();
-    private int boardSize = 5;
-    private int numberOfMines = 5;
+    private int boardSize = 9;
+    private int numberOfMines = 10;
     private Cell[][] board = new Cell[boardSize][boardSize];
 
     Board(){
@@ -27,8 +27,8 @@ public class Board {
 
         while(placedMines<numberOfMines){
 
-            row = random.nextInt(numberOfMines);
-            col = random.nextInt(numberOfMines);
+            row = random.nextInt(boardSize);
+            col = random.nextInt(boardSize);
 
             if(!board[row][col].getHasMine()){
                 board[row][col].setHasMine();
@@ -73,33 +73,77 @@ public class Board {
 
     public boolean revealCell(int row, int col){
 
-        board[row][col].setIsRevealed();
-        return board[row][col].getHasMine();
-    }
+        if (board[row][col].isFlagged()) {
+                return false; // Do nothing if flagged
+                }
+        
 
-    private void floodReveal(int row, int col){
-
-        board[row][col].setIsRevealed();
-        if(board[row][col].neighborMines == 0){
-            
+        if (board[row][col].getHasMine()) {
+            board[row][col].setIsRevealed();
+            return true;
         }
-    }
-    public void displayBoard() {
 
+        floodReveal(row, col);
+        return false;
+    }
+
+    private void floodReveal(int row, int col) {
+
+        // Stop if out of bounds
+        if (row < 0 || row >= boardSize || col < 0 || col >= boardSize) return;
+
+        Cell cell = board[row][col];
+
+        // Stop if already revealed
+        if (cell.getIsRevealed()) return;
+
+        // Reveal this cell
+        cell.setIsRevealed();
+
+        // Stop spreading if it has a number
+        if (cell.neighborMines > 0) return;
+
+        // Spread to all neighbors
+        for (int r = row - 1; r <= row + 1; r++) {
+            for (int c = col - 1; c <= col + 1; c++) {
+                if (r == row && c == col) continue;
+                floodReveal(r, c);
+            }
+        }
+}
+public void toggleFlag(int row, int col) {
+        Cell cell = board[row][col];
+
+            // Cannot flag revealed cells
+                if (!cell.getIsRevealed()) {
+                        cell.toggleFlag();
+                            }
+                            }
+
+
+
+    public void displayBoard() {
+    
+        for (int i = 0; i < boardSize; i++){
+            System.out.print(i + "  ");
+        }
+        System.out.println();
     for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
-            if (board[i][j].getIsRevealed()) {
+if (board[i][j].isFlagged()) {
+    System.out.print("🚩 ");
+}
+            else if (board[i][j].getIsRevealed()) {
                 if (board[i][j].getHasMine()) {
-                    System.out.print("💣 ");
+                    System.out.print("☠️  ");
                 } else {
-                    System.out.print(board[i][j].neighborMines + "  ");
+                    System.out.print(board[i][j].numEmojis[board[i][j].neighborMines] + "  ");
                 }
             } else {
-                System.out.print( "⏹️ ");
+                 System.out.print( "⏹️  ");
             }
 
-        }
+        } 
         System.out.println(); // move to next row
     }
-}
-}
+}}
